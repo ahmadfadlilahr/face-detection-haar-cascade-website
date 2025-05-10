@@ -6,7 +6,7 @@ Copyright (c) 2025, Ahmad Fadlilah (https://github.com/ahmadfadlilah)
 from setuptools import setup, find_packages
 
 setup(    name="face-detection-haar-cascade",
-    version="0.2.0",
+    version="0.3.1",
     description="Real-time face detection using Haar Cascade classifiers",
     author="Ahmad Fadlilah",
     author_email="ahmad.fadlilah@example.com",

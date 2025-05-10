@@ -15,10 +15,14 @@ Proyek ini sekarang dilengkapi dengan antarmuka web untuk pengalaman yang lebih 
 - Deteksi wajah real-time dari webcam
 - Antarmuka web untuk mengakses aplikasi melalui browser
 - Unggah dan proses gambar melalui antarmuka web
-- Deteksi wajah pada gambar yang diunggah
+- Deteksi wajah pada gambar yang diunggah dengan akurasi tinggi
+- Menggunakan beberapa cascade classifier untuk mendeteksi wajah dari berbagai sudut pandang
+- Deteksi wajah profil (tampak samping) pada gambar yang diunggah
+- Teknologi multi-scale detection untuk akurasi yang lebih tinggi
+- Pra-pemrosesan gambar canggih (ekualisasi histogram, CLAHE, bilateral filtering)
+- Algoritma penggabungan dan penghilangan deteksi duplikat
 - Unduhan otomatis file cascade jika belum ada
 - Tampilan jumlah wajah terdeteksi
-- Ekualisasi histogram untuk deteksi yang lebih baik dalam kondisi pencahayaan bervariasi
 - Penanganan error yang baik dan inisialisasi webcam yang lancar
 
 ## Persyaratan

@@ -10,6 +10,7 @@ import sys
 import unittest
 from unittest.mock import patch, MagicMock
 import base64
+import numpy as np
 
 # Add the src directory to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -19,8 +20,14 @@ class TestWebAppFunctions(unittest.TestCase):
 
     @patch('src.app.cv2')
     @patch('src.app.face_cascade')
-    def test_detect_faces_in_image(self, mock_face_cascade, mock_cv2):
-        """Test face detection in an uploaded image"""
+    @patch('src.app.face_cascade_alt')
+    @patch('src.app.face_cascade_alt2')
+    @patch('src.app.profile_cascade')
+    @patch('src.app.merge_faces')
+    def test_detect_faces_in_image(self, mock_merge_faces, mock_profile_cascade, 
+                                   mock_face_cascade_alt2, mock_face_cascade_alt, 
+                                   mock_face_cascade, mock_cv2):
+        """Test face detection in an uploaded image with multiple cascade classifiers"""
         from src.app import upload_image
         from flask import Flask
         
@@ -39,9 +46,25 @@ class TestWebAppFunctions(unittest.TestCase):
                 mock_cv2.imdecode.return_value = MagicMock()
                 mock_cv2.cvtColor.return_value = MagicMock()
                 mock_cv2.equalizeHist.return_value = MagicMock()
+                mock_cv2.bilateralFilter.return_value = MagicMock()
+                mock_cv2.createCLAHE.return_value.apply.return_value = MagicMock()
+                mock_cv2.normalize.return_value = MagicMock()
+                mock_cv2.flip.return_value = MagicMock()
                 
-                # Setup face detection mock to return one face
-                mock_face_cascade.detectMultiScale.return_value = [(10, 10, 100, 100)]
+                # Setup multiple face detection mocks
+                mock_faces_default = np.array([[10, 10, 100, 100]])
+                mock_faces_alt = np.array([[20, 20, 80, 80]])
+                mock_faces_alt2 = np.array([[30, 30, 70, 70]])
+                mock_profile_faces = np.array([[40, 40, 60, 60]])
+                
+                mock_face_cascade.detectMultiScale.return_value = mock_faces_default
+                mock_face_cascade_alt.detectMultiScale.return_value = mock_faces_alt
+                mock_face_cascade_alt2.detectMultiScale.return_value = mock_faces_alt2
+                mock_profile_cascade.detectMultiScale.return_value = mock_profile_faces
+                
+                # Mock merged faces result
+                mock_merged_faces = np.array([[15, 15, 90, 90], [35, 35, 65, 65]])
+                mock_merge_faces.return_value = mock_merged_faces
                 
                 # Mock imencode to return success and encoded image
                 mock_cv2.imencode.return_value = (True, b'encoded_image')
@@ -56,8 +79,17 @@ class TestWebAppFunctions(unittest.TestCase):
                     # Verify the result
                     data = result.get_json()
                     self.assertTrue(data['success'])
-                    self.assertEqual(data['message'], "1 wajah terdeteksi")
+                    self.assertEqual(data['message'], "2 wajah terdeteksi")  # Sesuai dengan jumlah wajah di mock_merged_faces
                     self.assertEqual(data['image'], 'base64_encoded_image')
+                    
+                    # Verify that all cascade classifiers were called
+                    mock_face_cascade.detectMultiScale.assert_called()
+                    mock_face_cascade_alt.detectMultiScale.assert_called()
+                    mock_face_cascade_alt2.detectMultiScale.assert_called()
+                    mock_profile_cascade.detectMultiScale.assert_called()
+                    
+                    # Verify that merge_faces was called
+                    mock_merge_faces.assert_called()
     
     @patch('src.app.cv2')
     @patch('src.app.face_cascade')
@@ -82,6 +114,32 @@ class TestWebAppFunctions(unittest.TestCase):
                             data = result.get_json()
                             self.assertTrue(data['success'])
                             self.assertEqual(data['message'], "Deteksi wajah dimulai")
+    
+    @patch('src.app.np')
+    def test_merge_faces(self, mock_np):
+        """Test the merge_faces function that combines multiple detection results"""
+        from src.app import merge_faces
+        
+        # Set up test data
+        face1 = np.array([[10, 10, 50, 50]])
+        face2 = np.array([[60, 60, 50, 50]])
+        face3 = np.array([[12, 12, 48, 48]])  # Similar to face1, should be filtered out
+        
+        faces_list = [face1, face2, face3]
+        
+        # Mock numpy operations
+        mock_np.vstack.return_value = np.array([[10, 10, 50, 50], [60, 60, 50, 50], [12, 12, 48, 48]])
+        mock_np.argsort.return_value = np.array([0, 2, 1])  # Sort by area (descending)
+        
+        # Call the function
+        result = merge_faces(faces_list)
+        
+        # Two faces should be kept (face1 and face2) as face3 overlaps with face1
+        self.assertEqual(len(result), 2)
+        
+        # Empty list should return empty array
+        empty_result = merge_faces([])
+        self.assertEqual(len(empty_result), 0)
 
 if __name__ == '__main__':
     unittest.main()

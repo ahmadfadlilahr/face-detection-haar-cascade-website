@@ -18,7 +18,12 @@ The project includes a web interface for a more user-friendly experience and a d
 - Real-time face detection from webcam
 - Web interface for accessing the application through a browser
 - Upload and process images through the web interface
-- Face detection on uploaded images
+- High-accuracy face detection on uploaded images
+- Multiple cascade classifier usage for detecting faces from various viewpoints
+- Profile face detection (side view) on uploaded images
+- Multi-scale detection technology for higher accuracy
+- Advanced image preprocessing (histogram equalization, CLAHE, bilateral filtering)
+- Face detection merging and duplicate elimination algorithms
 - Automatic download of cascade files if not present
 - Face count display
 - Histogram equalization for improved detection in varying light conditions
