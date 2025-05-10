@@ -1,0 +1,29 @@
+name: Deteksi Wajah dengan Haar Cascade
+description: Aplikasi deteksi wajah real-time menggunakan klasifikasi Haar Cascade dari OpenCV, dengan antarmuka desktop dan web.
+author: Ahmad Fadlilah
+show_downloads: true
+theme: jekyll-theme-cayman
+
+# GitHub Pages konfigurasi
+baseurl: "/face-detection-haar-cascade" # nama repositori GitHub Anda
+url: "" # Biarkan kosong untuk subdomain ahmadfadlilahr.github.io
+
+# Navigasi
+nav:
+  - title: Home
+    url: /
+  - title: Dokumentasi
+    url: /docs/usage.html
+  - title: Panduan Cepat
+    url: /docs/quickstart.html
+  - title: Web Interface
+    url: /docs/web_interface.html
+  - title: Demo
+    url: /notebooks/github_pages_demo.html
+  - title: GitHub
+    url: https://github.com/ahmadfadlilahr/face-detection-haar-cascade
+
+# Plugin untuk Jekyll
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap

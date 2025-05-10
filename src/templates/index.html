@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deteksi Wajah dengan Haar Cascade</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 20px;
+        }
+        .live-feed-container {
+            position: relative;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        .video-feed {
+            width: 100%;
+            border: 2px solid #343a40;
+            border-radius: 8px;
+        }
+        .upload-preview {
+            max-width: 100%;
+            border: 2px solid #343a40;
+            border-radius: 8px;
+            display: none;
+        }
+        .tab-content {
+            padding: 20px 0;
+        }
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .alert {
+            display: none;
+        }
+        .footer {
+            margin-top: 30px;
+            padding: 20px 0;
+            border-top: 1px solid #dee2e6;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Deteksi Wajah dengan Haar Cascade</h1>
+        
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="webcam-tab" data-bs-toggle="tab" data-bs-target="#webcam" type="button" role="tab" aria-controls="webcam" aria-selected="true">Webcam</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab" aria-controls="upload" aria-selected="false">Unggah Gambar</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="about-tab" data-bs-toggle="tab" data-bs-target="#about" type="button" role="tab" aria-controls="about" aria-selected="false">Tentang</button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="myTabContent">
+            <!-- Tab Webcam -->
+            <div class="tab-pane fade show active" id="webcam" role="tabpanel" aria-labelledby="webcam-tab">
+                <div class="alert alert-danger" id="webcamAlert" role="alert"></div>
+                
+                <div class="live-feed-container">
+                    <img src="{{ url_for('video_feed') }}" alt="Video Feed" class="video-feed" id="videoFeed" style="display: none;">
+                </div>
+                
+                <div class="text-center mt-3">
+                    <button class="btn btn-primary me-2" id="startButton">Mulai Deteksi</button>
+                    <button class="btn btn-danger" id="stopButton" disabled>Berhenti</button>
+                </div>
+            </div>
+            
+            <!-- Tab Unggah Gambar -->
+            <div class="tab-pane fade" id="upload" role="tabpanel" aria-labelledby="upload-tab">
+                <div class="alert alert-danger" id="uploadAlert" role="alert"></div>
+                
+                <div class="mb-3">
+                    <label for="imageUpload" class="form-label">Unggah Gambar</label>
+                    <input class="form-control" type="file" id="imageUpload" accept="image/*">
+                </div>
+                
+                <div class="text-center">
+                    <button class="btn btn-primary" id="uploadButton" disabled>Deteksi Wajah</button>
+                </div>
+                
+                <div class="loading-spinner" id="uploadSpinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Memproses gambar...</p>
+                </div>
+                
+                <div class="mt-4 text-center">
+                    <img src="" alt="Preview" class="upload-preview" id="imagePreview">
+                </div>
+            </div>
+            
+            <!-- Tab Tentang -->
+            <div class="tab-pane fade" id="about" role="tabpanel" aria-labelledby="about-tab">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Tentang Aplikasi</h2>
+                        <p class="card-text">
+                            Aplikasi ini menggunakan OpenCV dan algoritma Haar Cascade untuk mendeteksi wajah secara real-time 
+                            melalui webcam atau dari gambar yang diunggah. Aplikasi ini menggunakan teknologi berikut:
+                        </p>
+                        <ul>
+                            <li>Python dengan Flask sebagai framework web</li>
+                            <li>OpenCV untuk pemrosesan gambar dan deteksi wajah</li>
+                            <li>Haar Cascade Classifiers untuk mendeteksi wajah</li>
+                            <li>Bootstrap untuk antarmuka pengguna</li>
+                        </ul>
+                        
+                        <h4>Fitur</h4>
+                        <ul>
+                            <li>Deteksi wajah real-time melalui webcam</li>
+                            <li>Deteksi wajah pada gambar yang diunggah</li>
+                            <li>Penghitungan jumlah wajah terdeteksi</li>
+                            <li>Ekualisasi histogram untuk meningkatkan deteksi pada kondisi pencahayaan yang bervariasi</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+          <div class="footer">
+            <p>Deteksi Wajah dengan Haar Cascade &copy; 2025</p>
+            <p>Copyright (c) 2025, <a href="https://github.com/ahmadfadlilah" target="_blank">Ahmad Fadlilah</a></p>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Variabel elemen
+            const videoFeed = document.getElementById('videoFeed');
+            const startButton = document.getElementById('startButton');
+            const stopButton = document.getElementById('stopButton');
+            const webcamAlert = document.getElementById('webcamAlert');
+            
+            const imageUpload = document.getElementById('imageUpload');
+            const uploadButton = document.getElementById('uploadButton');
+            const imagePreview = document.getElementById('imagePreview');
+            const uploadSpinner = document.getElementById('uploadSpinner');
+            const uploadAlert = document.getElementById('uploadAlert');
+            
+            // Tab handling
+            const tabElements = document.querySelectorAll('button[data-bs-toggle="tab"]');
+            
+            // Fungsi untuk memulai deteksi wajah
+            function startDetection() {
+                fetch('/start_detection', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        videoFeed.style.display = 'block';
+                        startButton.disabled = true;
+                        stopButton.disabled = false;
+                        hideAlert(webcamAlert);
+                    } else {
+                        showAlert(webcamAlert, data.message);
+                    }
+                })
+                .catch(error => {
+                    showAlert(webcamAlert, 'Terjadi error: ' + error);
+                });
+            }
+            
+            // Fungsi untuk menghentikan deteksi wajah
+            function stopDetection() {
+                fetch('/stop_detection', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        videoFeed.style.display = 'none';
+                        startButton.disabled = false;
+                        stopButton.disabled = true;
+                    } else {
+                        showAlert(webcamAlert, data.message);
+                    }
+                })
+                .catch(error => {
+                    showAlert(webcamAlert, 'Terjadi error: ' + error);
+                });
+            }
+            
+            // Fungsi untuk mengunggah gambar dan mendeteksi wajah
+            function uploadAndDetect() {
+                const file = imageUpload.files[0];
+                if (!file) {
+                    showAlert(uploadAlert, 'Silakan pilih gambar terlebih dahulu');
+                    return;
+                }
+                
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                uploadSpinner.style.display = 'block';
+                uploadButton.disabled = true;
+                hideAlert(uploadAlert);
+                
+                fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    uploadSpinner.style.display = 'none';
+                    uploadButton.disabled = false;
+                    
+                    if (data.success) {
+                        imagePreview.src = 'data:image/jpeg;base64,' + data.image;
+                        imagePreview.style.display = 'block';
+                    } else {
+                        showAlert(uploadAlert, data.message);
+                    }
+                })
+                .catch(error => {
+                    uploadSpinner.style.display = 'none';
+                    uploadButton.disabled = false;
+                    showAlert(uploadAlert, 'Terjadi error: ' + error);
+                });
+            }
+            
+            // Helper untuk menampilkan alert
+            function showAlert(element, message) {
+                element.textContent = message;
+                element.style.display = 'block';
+            }
+            
+            // Helper untuk menyembunyikan alert
+            function hideAlert(element) {
+                element.style.display = 'none';
+            }
+            
+            // Event listeners
+            startButton.addEventListener('click', startDetection);
+            stopButton.addEventListener('click', stopDetection);
+            uploadButton.addEventListener('click', uploadAndDetect);
+            
+            imageUpload.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    uploadButton.disabled = false;
+                } else {
+                    uploadButton.disabled = true;
+                }
+            });
+            
+            // Handle tab switch untuk membersihkan state
+            tabElements.forEach(tab => {
+                tab.addEventListener('shown.bs.tab', function(e) {
+                    if (e.target.id === 'webcam-tab') {
+                        // Beralih ke tab webcam
+                    } else if (e.target.id === 'upload-tab') {
+                        // Beralih ke tab unggah
+                        imagePreview.style.display = 'none';
+                        hideAlert(uploadAlert);
+                    } else if (e.target.id === 'about-tab') {
+                        // Beralih ke tab tentang
+                    }
+                });
+            });        });
+    </script>
+    
+    <footer class="mt-5 py-3 text-center bg-light">
+        <div class="container">
+            <p>Deteksi Wajah dengan Haar Cascade &copy; 2025</p>
+            <p>Copyright (c) 2025, <a href="https://github.com/ahmadfadlilah" target="_blank">Ahmad Fadlilah</a></p>
+        </div>
+    </footer>
+</body>
+</html>
